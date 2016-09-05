@@ -52,8 +52,9 @@
     <Compile Include="IEntityOfT.cs" />
     <Compile Include="IKeyableOfT.cs" />
     <Compile Include="IRemoveable.cs" />
-    <Compile Include="QueryableExtensions.cs" />
+    <Compile Include="EntityExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UnknownIdsException.cs" />
     <Compile Include="UnknownIdException.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace RSPK.EfExtensions
 {
-    public static class QueryableExtensions
+    public static class EntityExtensions
     {
         public static TEntity UpdateOrNull<TEntity, TKey>(this DbContext context, TEntity entity) where TEntity : class, IKeyable<TKey>
         {
@@ -86,9 +86,22 @@ namespace RSPK.EfExtensions
             entity.RemoveDate = DateTime.Now;
         }
 
-        public static IQueryable<TEntity> Get<TEntity, TKey>(this IQueryable<TEntity> query, params TKey[] ids) where TEntity : class,  IKeyable<TKey>
+        /// <summary>
+        /// Returns query for entities, with id equal to one of the listed. 
+        /// Returns empty query if no entities will be found.
+        /// </summary>
+        public static IQueryable<TEntity> GetAnyOf<TEntity, TKey>(this IQueryable<TEntity> query, params TKey[] ids) where TEntity : class,  IKeyable<TKey>
         {
             return query.Where(q => ids.Contains(q.Id));
+        }
+        public static TEntity[] GetAllOf<TEntity, TKey>(this IQueryable<TEntity> query, params TKey[] ids) where TEntity : class,  IKeyable<TKey>
+        {
+            if (!ids.Any())
+                throw new ArgumentException("parameter ids does not contain any elements");
+            var ans = query.Where(q => ids.Contains(q.Id)).ToArray();
+            if (ans.Length == ids.Length)
+                return ans;
+            throw new UnknownIdsException(ids.Except(ans.Select(a => a.Id)).Cast<object>().ToArray());
         }
         public static TEntity Get<TEntity>(this IQueryable<TEntity> query, Guid id) where TEntity : class,  IKeyable<Guid>
         {
@@ -168,7 +181,7 @@ namespace RSPK.EfExtensions
         }
         public static ICollection<TEntity> Sycnronize<TEntity>(this ICollection<TEntity> collection, IDbSet<TEntity> context, Guid[] ids) where TEntity : class, IEntity<Guid>
         {
-            var newAgents = context.Get(ids).ToList();
+            var newAgents = context.GetAnyOf(ids).ToList();
             var oldAgents = collection.ToList();
             var forRemove = oldAgents.Except(newAgents);
             var forAdd = newAgents.Except(oldAgents);

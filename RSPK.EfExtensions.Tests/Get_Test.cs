@@ -5,7 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace RSPK.EfExtensions.Tests
 {
     [TestClass]
-    public class GetTests
+    public class Get_Tests
     {
         [TestMethod]
         public void GetInt()
