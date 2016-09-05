@@ -8,6 +8,6 @@ namespace RSPK.EfExtensions
 {
     public interface IKeyable<TEntity>
     {
-        T Id { get; set; }
+        TEntity Id { get; set; }
     }
 }
