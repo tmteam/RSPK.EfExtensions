@@ -14,10 +14,10 @@ To install RSPK.EfExtensions, run the following command in the Package Manager C
       .OrderBy(c=>c.Created)
       .Take(5);
     
-    // Returns user with id equal to 123
+    // Return user with id equal to 123
     var usr = DataContext.Users.NotRemoved.Get(id: 123);
     
-    // Marks user as removed
+    // Mark user as removed
     usr.MarkAsRemoved();
     //or
     //Remove user from db
