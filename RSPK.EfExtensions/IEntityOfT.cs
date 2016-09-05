@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace RSPK.EfExtensions
 {
-    public interface IEntity<T> : IKeyable<T>, IRemoveable, ICreateable
+    public interface IEntity<TEntity> : IKeyable<TEntity>, IRemoveable, ICreateable
     {
     }
 }

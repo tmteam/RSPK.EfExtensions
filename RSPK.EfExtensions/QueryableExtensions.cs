@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
+
 using System.Text;
 using System.Threading.Tasks;
 
@@ -23,40 +25,52 @@ namespace RSPK.EfExtensions
             return ans;
         }
 
-        public static T DeleteFromDb<T>(this DbSet<T> dbSet, int id) where T : class, IKeyable<int>, IRemoveable
+        public static TEntity DeleteFromDb<TEntity>(this DbSet<TEntity> dbSet, long id) where TEntity : class, IKeyable<long>, IRemoveable
         {
             var entity = dbSet.NotRemoved().Get(id);
             dbSet.Remove(entity);
             return entity;
         }
-        public static T DeleteFromDb<T>(this DbSet<T> dbSet, string id) where T : class, IKeyable<string>, IRemoveable
+        public static TEntity DeleteFromDb<TEntity>(this DbSet<TEntity> dbSet, int id) where TEntity : class, IKeyable<int>, IRemoveable
         {
             var entity = dbSet.NotRemoved().Get(id);
             dbSet.Remove(entity);
             return entity;
         }
-        public static T DeleteFromDb<T>(this DbSet<T> dbSet, Guid id) where T : class, IKeyable<Guid>, IRemoveable
+        public static TEntity DeleteFromDb<TEntity>(this DbSet<TEntity> dbSet, string id) where TEntity : class, IKeyable<string>, IRemoveable
         {
             var entity = dbSet.NotRemoved().Get(id);
             dbSet.Remove(entity);
             return entity;
         }
-        public static T MarkAsRemoved<T>(this DbSet<T> dbSet, int id) where T : class,  IKeyable<int>, IRemoveable
+        public static TEntity DeleteFromDb<TEntity>(this DbSet<TEntity> dbSet, Guid id) where TEntity : class, IKeyable<Guid>, IRemoveable
+        {
+            var entity = dbSet.NotRemoved().Get(id);
+            dbSet.Remove(entity);
+            return entity;
+        }
+
+        public static TEntity MarkAsRemoved<TEntity>(this DbSet<TEntity> dbSet, long id) where TEntity : class,  IKeyable<long>, IRemoveable
         {
             var entity = dbSet.NotRemoved().Get(id);
             return dbSet.MarkAsRemoved(entity);
         }
-        public static T MarkAsRemoved<T>(this DbSet<T> dbSet, string id) where T : class,  IKeyable<string>, IRemoveable
+        public static TEntity MarkAsRemoved<TEntity>(this DbSet<TEntity> dbSet, int id) where TEntity : class,  IKeyable<int>, IRemoveable
         {
             var entity = dbSet.NotRemoved().Get(id);
             return dbSet.MarkAsRemoved(entity);
         }
-        public static T MarkAsRemoved<T>(this DbSet<T> dbSet, Guid id) where T : class,  IKeyable<Guid>, IRemoveable
+        public static TEntity MarkAsRemoved<TEntity>(this DbSet<TEntity> dbSet, string id) where TEntity : class,  IKeyable<string>, IRemoveable
         {
             var entity = dbSet.NotRemoved().Get(id);
             return dbSet.MarkAsRemoved(entity);
         }
-        public static T MarkAsRemoved<T>(this DbSet<T> dbSet, T entity) where T : class,  IRemoveable
+        public static TEntity MarkAsRemoved<TEntity>(this DbSet<TEntity> dbSet, Guid id) where TEntity : class,  IKeyable<Guid>, IRemoveable
+        {
+            var entity = dbSet.NotRemoved().Get(id);
+            return dbSet.MarkAsRemoved(entity);
+        }
+        public static TEntity MarkAsRemoved<TEntity>(this DbSet<TEntity> dbSet, TEntity entity) where TEntity : class,  IRemoveable
         {
             if (entity.IsRemoved)
                 throw new InvalidOperationException("Entity is already deleted");
@@ -64,13 +78,75 @@ namespace RSPK.EfExtensions
             entity.RemoveDate = DateTime.Now;
             return entity;
         }
-        public static void MarkAsRemoved<T>(this T entity) where T : IRemoveable
+        public static void MarkAsRemoved<TEntity>(this TEntity entity) where TEntity : IRemoveable
         {
             if (entity.IsRemoved)
                 throw new InvalidOperationException("Entity is already deleted");
             entity.IsRemoved = true;
             entity.RemoveDate = DateTime.Now;
         }
+
+        public static IQueryable<TEntity> Get<TEntity, TKey>(this IQueryable<TEntity> query, params TKey[] ids) where TEntity : class,  IKeyable<TKey>
+        {
+            return query.Where(q => ids.Contains(q.Id));
+        }
+        public static TEntity Get<TEntity>(this IQueryable<TEntity> query, Guid id) where TEntity : class,  IKeyable<Guid>
+        {
+            var ans = query.GetOrNull(id);
+            if (ans == null)
+                throw new UnknownIdException(id);
+            return ans;
+        }
+        public static TEntity Get<TEntity>(this IQueryable<TEntity> query, int id) where TEntity : class,  IKeyable<int>
+        {
+            var ans = query.GetOrNull(id);
+            if (ans == null)
+                throw new UnknownIdException(id);
+            return ans;
+        }
+        public static TEntity Get<TEntity>(this IQueryable<TEntity> query, long id) where TEntity : class,  IKeyable<long>
+        {
+            var ans = query.GetOrNull(id);
+            if (ans == null)
+                throw new UnknownIdException(id);
+            return ans;
+        }
+        public static TEntity Get<TEntity>(this IQueryable<TEntity> query, string id) where TEntity : class,  IKeyable<string>
+        {
+            var ans = query.GetOrNull(id);
+            if (ans == null)
+                throw new UnknownIdException(id);
+            return ans;
+        }
+
+        public static TEntity GetOrNull<TEntity>(this IQueryable<TEntity> query, long id) where TEntity : class, IKeyable<long>
+        {
+            return query.FirstOrDefault(e => e.Id == id);
+        }
+        public static TEntity GetOrNull<TEntity>(this IQueryable<TEntity> query, Guid id) where TEntity : class, IKeyable<Guid>
+        {
+            return query.FirstOrDefault(e => e.Id == id);
+        }
+        public static TEntity GetOrNull<TEntity>(this IQueryable<TEntity> query, int id) where TEntity : class,  IKeyable<int>
+        {
+            return query.FirstOrDefault(e => e.Id == id);
+        }
+        public static TEntity GetOrNull<TEntity>(this IQueryable<TEntity> query, string id) where TEntity : class,  IKeyable<string>
+        {
+            return query.FirstOrDefault(e => e.Id == id);
+        }
+
+        public static IQueryable<TEntity> ThatWasCreated<TEntity>(this IQueryable<TEntity> query, DateTime? includeFrom = null, DateTime? excludeTo = null)
+            where TEntity : class,  ICreateable
+        {
+            IQueryable<TEntity> ans = query;
+            if (includeFrom.HasValue)
+                ans = ans.Where(a => a.Created >= includeFrom.Value);
+            if (excludeTo.HasValue)
+                ans = ans.Where(a => a.Created < excludeTo.Value);
+            return ans;
+        }
+
         public static void Initialize(this object entity)
         {
             var guidKey = entity as IKeyable<Guid>;
@@ -86,71 +162,11 @@ namespace RSPK.EfExtensions
                 removeable.IsRemoved = false;
         }
 
-        public static IQueryable<T> Get<T>(this IQueryable<T> query, Guid[] ids) where T : class,  IKeyable<Guid>
-        {
-            return query.Where(q => ids.Contains(q.Id));
-        }
-        public static T Get<T>(this IQueryable<T> query, Guid id) where T : class,  IKeyable<Guid>
-        {
-            var ans = query.GetOrNull(id);
-            if (ans == null)
-                throw new UnknownIdException(id);
-            return ans;
-        }
-        public static T Get<T>(this IQueryable<T> query, int id) where T : class,  IKeyable<int>
-        {
-            var ans = query.GetOrNull(id);
-            if (ans == null)
-                throw new UnknownIdException(id);
-            return ans;
-        }
-        public static T Get<T>(this IQueryable<T> query, long id) where T : class,  IKeyable<long>
-        {
-            var ans = query.GetOrNull(id);
-            if (ans == null)
-                throw new UnknownIdException(id);
-            return ans;
-        }
-        public static T Get<T>(this IQueryable<T> query, string id) where T : class,  IKeyable<string>
-        {
-            var ans = query.GetOrNull(id);
-            if (ans == null)
-                throw new UnknownIdException(id);
-            return ans;
-        }
-        public static T GetOrNull<T>(this IQueryable<T> query, long id) where T : class, IKeyable<long>
-        {
-            return query.FirstOrDefault(e => e.Id == id);
-        }
-
-        public static T GetOrNull<T>(this IQueryable<T> query, Guid id) where T : class, IKeyable<Guid>
-        {
-            return query.FirstOrDefault(e => e.Id == id);
-        }
-        public static T GetOrNull<T>(this IQueryable<T> query, int id) where T : class,  IKeyable<int>
-        {
-            return query.FirstOrDefault(e => e.Id == id);
-        }
-        public static T GetOrNull<T>(this IQueryable<T> query, string id) where T : class,  IKeyable<string>
-        {
-            return query.FirstOrDefault(e => e.Id == id);
-        }
-
-        public static IQueryable<T> ThatWasCreated<T>(this IQueryable<T> query, DateTime? includeFrom = null, DateTime? excludeTo = null)
-            where T : class,  ICreateable
-        {
-            IQueryable<T> ans = query;
-            if (includeFrom.HasValue)
-                ans = ans.Where(a => a.Created >= includeFrom.Value);
-            if (excludeTo.HasValue)
-                ans = ans.Where(a => a.Created < excludeTo.Value);
-            return ans;
-        }
-        public static IQueryable<T> NotRemoved<T>(this IQueryable<T> query) where T : class, IRemoveable
+        public static IQueryable<TEntity> NotRemoved<TEntity>(this IQueryable<TEntity> query) where TEntity : class, IRemoveable
         {
             return query.Where(q => !q.IsRemoved);
         }
-        public static ICollection<T> Sycnronize<T>(this ICollection<T> collection, IDbSet<T> context, Guid[] ids) where T : class, IEntity<Guid>
+        public static ICollection<TEntity> Sycnronize<TEntity>(this ICollection<TEntity> collection, IDbSet<TEntity> context, Guid[] ids) where TEntity : class, IEntity<Guid>
         {
             var newAgents = context.Get(ids).ToList();
             var oldAgents = collection.ToList();
